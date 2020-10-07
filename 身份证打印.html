@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>身份证打印</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    body {
+  margin: 0;
+  padding: 0;
+  background-color: #FAFAFA;
+  font: 12pt "Tahoma";}* {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;}.page {
+  width: 21cm;
+  min-height: 29.7cm;
+  padding: 2cm;
+  margin: 1cm auto;
+  border: 1px #D3D3D3 solid;
+  border-radius: 5px;
+  background: white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);}.subpage {
+  padding: 1cm;
+  /* border: 5px red solid; */
+  height: 256mm;
+  /* outline: 2cm #FFEAEA solid; */}@page {
+  size: A4;
+  margin: 0;}@media print {
+  .page {
+    margin: 0;
+    border: initial;
+    border-radius: initial;
+    width: initial;
+    min-height: initial;
+    box-shadow: initial;
+    background: initial;
+    page-break-after: always;
+  }}
+  .subpage{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+  }
+  .card1,.card2{
+    width: 85.6mm;
+    height: 54mm;
+    margin: 4cm 0;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #80808021;
+  }
+  img{
+    width: 100%;
+    height: 100%;
+  }
+  .action{
+    display: none;
+  }
+  .download{
+    font-weight: 900;
+    color: red;
+  }
+  .select{
+    height: 100px;
+    overflow: hidden;
+    width: 21cm;
+    margin: 1cm auto;
+  }
+  .item{
+    width: 33%;
+    height: 100px;
+    float: left;
+    text-align: center;
+    line-height: 100px;
+    font-size: 30px;
+  }
+  .active{
+    color: rgb(14, 119, 240);;
+  }
+  .grayPage{
+    filter:progid:DXImageTransform.Microsoft.BasicImage(grayscale=1); 
+    filter: grayscale(100%);
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    filter: gray;
+    -webkit-filter: grayscale(1); 
+  }
+  </style>
+</head>
+<body>
+  <div class="select">
+    <div class="item item1 active">黑白</div>
+    <div class="item item2">彩色</div>
+    <div class="item download">下载图片</div>
+  </div>
+  <div class="action">
+    <input type="file" id="card1">
+    <input type="file" id="card2">
+  </div>
+  <div class="book">
+    <div class="page grayPage">
+      <div class="subpage">
+        <div class="card-wrap">
+          <div class="card1">
+            <img alt="点击上传【正面】身份证">
+          </div>
+          <div class="card2">
+            <imgalt="点击上传【反面】身份证">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  document.querySelector('#card1').addEventListener('change',function(e){
+    if(e.target.files&&e.target.files[0]){
+      document.querySelector('.card1 img').src = window.URL.createObjectURL(e.target.files[0])
+    }
+  })
+  document.querySelector('#card2').addEventListener('change',function(e){
+    if(e.target.files&&e.target.files[0]){
+      document.querySelector('.card2 img').src = window.URL.createObjectURL(e.target.files[0])
+    }
+  })
+  document.querySelector('.card1').addEventListener('click',function(e){
+    document.querySelector('#card1').click()
+  })
+  document.querySelector('.card2').addEventListener('click',function(e){
+    document.querySelector('#card2').click()
+  })
+  document.querySelector('.item1').addEventListener('click',function(e){
+    document.querySelector('.item1').classList.add('active')
+    document.querySelector('.item2').classList.remove('active')
+    document.querySelector('.page').classList.add('grayPage')
+  })
+  document.querySelector('.item2').addEventListener('click',function(e){
+    document.querySelector('.item2').classList.add('active')
+    document.querySelector('.item1').classList.remove('active')
+    document.querySelector('.page').classList.remove('grayPage')
+  })
+  document.querySelector('.download').addEventListener('click',function(e){
+    document.querySelector('html').scrollTop = 0
+    setTimeout(()=>{
+      html2canvas(document.querySelector('.page'), {
+        allowTaint: true,
+        useCORS: true
+      }).then(canvas => {
+        if([...document.querySelector('.item1').classList].includes('active')){
+          const imageData = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
+          const imageData_length = imageData.data.length / 4;
+          // 解析之后进行算法运算
+          for (let i = 0; i < imageData_length; i++) {
+            const red = imageData.data[i * 4];
+            const green = imageData.data[i * 4 + 1];
+            const blue = imageData.data[i * 4 + 2];
+            const gray = 0.3 * red + 0.59 * green + 0.11 * blue;
+            imageData.data[i * 4] = gray;
+            imageData.data[i * 4 + 1] = gray;
+            imageData.data[i * 4 + 2] = gray;
+          }
+          canvas.getContext("2d").putImageData(imageData, 0, 0);
+        }
+        const alink = document.createElement("a");
+        alink.href = canvas.toDataURL('image/png');
+        alink.download = "身份证打印图片"+Date.now()+".png";
+        alink.click();
+      });
+    },100)
+  })
+</script>
+</html>
